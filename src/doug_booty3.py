@@ -84,16 +84,12 @@ def read_file_in_chunks(file_path):
         results = p.starmap(process_chunk, chunks)
 
     final = reduce(results)
-
-    print(
-        "{",
-        ", ".join(
+    
+    with open("answer.txt","W") as f:
+        f.write(
+        "\nbootyV3___ ".join(
             f"{loc.decode()}={0.1*val[2]:.1f}/{(0.1*val[1] / val[0]):.1f}/{0.1*val[3]:.1f}"
-            for loc, val in sorted(final.items())
-        ),
-        "}",
-        sep="",
-    )
+            for loc, val in sorted(final.items())))
 
 
 if __name__ == "__main__":
@@ -103,4 +99,4 @@ if __name__ == "__main__":
     elapsed_time = end_time - start_time  # Tính thời gian chạy
   
     # In ra thời gian chạy
-    print(f"Thời gian chạy: {elapsed_time:.4f} giây")
+    print(f"Thời gian chạy doug_bootyV3___ : {elapsed_time:.4f} giây")

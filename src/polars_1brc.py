@@ -32,4 +32,4 @@ end_time = time.time()
 elapsed_time = end_time - start_time  # Tính thời gian chạy
 
 # In ra thời gian chạy
-print(f"Thời gian chạy: {elapsed_time:.4f} giây")
+print(f"Thời gian chạy polar_1brc___: {elapsed_time:.4f} giây")
