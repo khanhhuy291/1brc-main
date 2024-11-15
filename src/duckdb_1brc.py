@@ -1,9 +1,7 @@
 import duckdb
 import time
-
 # Bắt đầu đo thời gian
 start_time = time.time()
-
 # Kết nối và thực hiện truy vấn DuckDB
 with duckdb.connect() as conn:
     data = conn.sql(
@@ -23,14 +21,13 @@ with duckdb.connect() as conn:
         GROUP BY station_name
         """
     )
-
     # Tạo nội dung kết quả
     result = "\nduckdb__  ".join(f"{row[0]}={row[1]}/{row[2]}/{row[3]}" for row in sorted(data.fetchall())) 
 
     # Ghi kết quả vào file answer.txt
     with open("answer.txt", "w") as f:
         f.write(result)
-
+        
 # Kết thúc đo thời gian
 end_time = time.time()
 elapsed_time = end_time - start_time  # Tính thời gian chạy

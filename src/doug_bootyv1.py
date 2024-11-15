@@ -1,6 +1,7 @@
 import mmap
 import multiprocessing
 import os
+
 import time
 
 # Bắt đầu đo thời gian
@@ -9,49 +10,29 @@ start_time = time.time()
 CPU_COUNT = os.cpu_count()
 MMAP_PAGE_SIZE = os.sysconf("SC_PAGE_SIZE")
 
-
-def to_int(x: bytes) -> int:
-    # Parse sign
-    if x[0] == 45:  # ASCII for "-"
-        sign = -1
-        idx = 1
-    else:
-        sign = 1
-        idx = 0
-    # Check the position of the decimal point
-    if x[idx + 1] == 46:  # ASCII for "."
-        # -#.# or #.#
-        # 528 == ord("0") * 11
-        result = sign * ((x[idx] * 10 + x[idx + 2]) - 528)
-    else:
-        # -##.# or ##.#
-        # 5328 == ord("0") * 111
-        result = sign * ((x[idx] * 100 + x[idx + 1] * 10 + x[idx + 3]) - 5328)
-
-    return result
-
-#Cập nhật dữ liệu nhiệt độ cho thành phố trong từ điển result
 def process_line(line, result):
     idx = line.find(b";")
-
-    city = line[:idx]
-    temp_float = to_int(line[idx + 1 : -1])
+    decoded_line = line.decode("utf-8") 
+    city = decoded_line[:idx]
+    temp_float = float(decoded_line[idx+1])
 
     if city in result:
         item = result[city]
         item[0] += 1
         item[1] += temp_float
-        item[2] = min(item[2], temp_float)
-        item[3] = max(item[3], temp_float)
+        if temp_float > item[2]:
+            item[2] = temp_float
+        if temp_float < item[3]:
+            item[3] = temp_float
     else:
         result[city] = [1, temp_float, temp_float, temp_float]
 
 
-# Căn chỉnh giá trị offset theo kích thước trang bộ nhớ page_size.
+# Will get OS errors if mmap offset is not aligned to page size
 def align_offset(offset, page_size):
     return (offset // page_size) * page_size
 
-#Xử lý 1 đoạn chunks trả về t
+
 def process_chunk(file_path, start_byte, end_byte):
     offset = align_offset(start_byte, MMAP_PAGE_SIZE)
     result = {}
@@ -63,7 +44,7 @@ def process_chunk(file_path, start_byte, end_byte):
             file.fileno(), length, access=mmap.ACCESS_READ, offset=offset
         ) as mmapped_file:
             mmapped_file.seek(start_byte - offset)
-            for line in iter(mmapped_file.readline, b""):
+            for line in iter(mmapped_file.readline, b"\n"):
                 process_line(line, result)
     return result
 
@@ -95,21 +76,24 @@ def read_file_in_chunks(file_path):
             start_byte = 0
             for _ in range(CPU_COUNT):
                 end_byte = min(start_byte + base_chunk_size, file_size_bytes)
-                end_byte = mmapped_file.find(b"\n", end_byte)
-                end_byte = end_byte + 1 if end_byte != -1 else file_size_bytes
-                chunks.append((file_path, start_byte, end_byte))
-                start_byte = end_byte
+                while (
+                    end_byte < file_size_bytes
+                    and mmapped_file[end_byte : end_byte + 1] != b"\n"
+                ):
+                    end_byte +=1
+                if end_byte < file_size_bytes:
+                    end_byte+=1
 
     with multiprocessing.Pool(processes=CPU_COUNT) as p:
         results = p.starmap(process_chunk, chunks)
 
     final = reduce(results)
-    with open("answer.txt", "w") as f:
+    
+    with open("answer.txt","W") as f:
         f.write(
-            "\nbootyv4___ ".join(
-                f"{loc.decode()}={0.1*val[2]:.1f}/{(0.1*val[1] / val[0]):.1f}/{0.1*val[3]:.1f}"
-                for loc, val in sorted(final.items()))
-        )
+        "\nbootyV3___ ".join(
+            f"{loc.decode()}={0.1*val[2]:.1f}/{(0.1*val[1] / val[0]):.1f}/{0.1*val[3]:.1f}"
+            for loc, val in sorted(final.items())))
 
 
 if __name__ == "__main__":
@@ -117,5 +101,6 @@ if __name__ == "__main__":
     # Kết thúc đo thời gian
     end_time = time.time()
     elapsed_time = end_time - start_time  # Tính thời gian chạy
+  
     # In ra thời gian chạy
-    print(f"Thời gian chạy doug_booty4___ : {elapsed_time:.4f} giây")
+    print(f"Thời gian chạy doug_bootyV1___ : {elapsed_time:.4f} giây")
