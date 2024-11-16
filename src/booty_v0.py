@@ -50,7 +50,7 @@ def process_line(line, histo):
 def align_offset(offset, page_size):
     return (offset // page_size) * page_size
 
-
+#Mỗi worker xử lý một phần dữ liệu từ byte start_byte đến end_byte.
 def do_some_processing(worker_id, start_byte, end_byte):
     aligned_offset = align_offset(start_byte, MMAP_PAGE_SIZE)
     line_count = 0
@@ -96,7 +96,7 @@ def do_some_processing_profile(worker_id, start_byte, end_byte):
     else:
         return do_some_processing(worker_id, start_byte, end_byte)
 
-
+#Tong hop ket qua
 def reduce_histos(histos):
     final_histo = {}
     for histo in histos:
@@ -116,7 +116,7 @@ def reduce_histos(histos):
         item[CITY_AVG] = item[CITY_SUM] / item[CITY_COUNT]
     return final_histo
 
-
+# Sử dụng mmap(Memory Map) để ánh xạ tệp. Làm cho 1 số thao tác IO dc xử lý nhanh hơn.
 def read_file_in_chunks(file_path=FILE_PATH):
     base_chunk_size = FILE_SIZE_BYTES // CPU_COUNT
     pool = multiprocessing.Pool(processes=CPU_COUNT)
